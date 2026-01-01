@@ -1,0 +1,51 @@
+[package]
+name = "gfm-syntax"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+authors = ["Abhinandh S <abhinandhsuby@proton.me>"]
+description = "A markdown laguage"
+homepage = "https://github.com/abhinandh-s/gfm-syntax"
+documentation = "https://github.com/abhinandh-s/gfm-syntax"
+categories = ["command-line-utilities"]
+keywords = ["cli", "tool", "utility"]
+
+[features]
+default = ["tower-lsp"]
+tower-lsp = ["dep:tower-lsp", "dep:ropey"]
+lsp-types = ["dep:lsp-types", "dep:ropey"]
+
+[dependencies]
+derive_screaming_snake_case = "1.0"
+ropey = { version = "1.6", optional = true }
+thiserror = "2.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+tower-lsp = { version = "0.20", optional = true }
+lsp-types = { version = "0.97", optional = true }
+
+[dev-dependencies]
+insta = "1.42"
+expect-test = "1.5"
+quickcheck = "1"
+proptest = "1"
+
+[package.metadata.insta]
+snapshot-path = "tests/snapshots"
+
+[profile.dev.package.insta]
+opt-level = 3
+
+[profile.dev.package.similar]
+opt-level = 3
+
+[profile.release]
+panic = 'abort'
+codegen-units = 1
+opt-level = 'z'
+lto = true
+debug = "none"
+strip = "symbols"
+debug-assertions = false
+overflow-checks = false
