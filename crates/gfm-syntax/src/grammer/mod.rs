@@ -210,22 +210,34 @@ fn heading(p: &mut Parser) {
         p.eat();
     }
 
+    // # foo #####
+    //      ^
+    //      parse from here
     if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
-        p.eat(); // WhiteSpace
-        println!("this is Pound: => {}", p.current());
-        // end_count = p.eat_many_counted(T![Pound]);
-        let mut n = 0;
-        while p.at(T![Pound]) && p.next() == Some(SyntaxKind::Pound) {
-            p.eat();
-            n += 1;
-        }
-        // # foo #####
-        //          ^ one more `#` to eat
-        n += 1;
-        end_count = n;
+    p.eat();
+    // only `#` left
     }
-    println!("this is : => {}", p.current());
-    //
+
+    // # foo ##### dhosfnlfdjkhjk
+    //            ^
+    //            from here is dealed
+
+    // if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
+    //     p.eat(); // WhiteSpace
+    //     println!("this is Pound: => {}", p.current());
+    //     // end_count = p.eat_many_counted(T![Pound]);
+    //     let mut n = 0;
+    //     while p.at(T![Pound]) && p.next() == Some(SyntaxKind::Pound) {
+    //         p.eat();
+    //         n += 1;
+    //     }
+    //     // # foo #####
+    //     //          ^ one more `#` to eat
+    //     n += 1;
+    //     end_count = n;
+    // }
+    // println!("this is : => {}", p.current());
+    // //
     //
     //        // p.assert(T![Pound]);
     //       //  p.expect(T![Pound]);
@@ -262,9 +274,9 @@ fn heading(p: &mut Parser) {
     // 01) havn't considered the optional `#` sequence at the end rule
 
     println!("count: {}, end_count: {}", count, end_count);
-    //if count == end_count {
-    // eat_breaks(p);
-    //}
+    if !p.at_set(terminators) {
+        p.eat_until(terminators);
+    }
     if count <= 6 && exists {
         p.wrap(m, SyntaxKind::Heading);
     } else {
