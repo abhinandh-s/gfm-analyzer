@@ -1,6 +1,6 @@
 pub mod backend;
-pub mod span;
 mod handle;
+pub mod span;
 pub use gfm_syntax as gfm;
 pub mod types;
 

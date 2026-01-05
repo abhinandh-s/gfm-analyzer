@@ -2,7 +2,7 @@
   description = "A devShell example";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-24.11";
     unstable-nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
     flake-utils.url = "github:numtide/flake-utils";
@@ -34,11 +34,19 @@
           mkShellNoCC {
             # nativeBuildInputs is usually what you want -- tools you need to run
             nativeBuildInputs = with pkgs.buildPackages; [
+              pkg-config
+              openssl
             ];
             buildInputs = [
               lua
+              unstable.lazygit
+              llvmPackages.bintools
+              eza
               unstable.neovim
+              fd
               unstable.rustup
+              nodejs
+              rust-bin.stable.latest.default
             ];
 
             GREETING = "Environment is ready!";

@@ -8,27 +8,6 @@ use am::*;
 mod dm;
 use dm::*;
 
-#[derive(Debug)]
-pub(crate) struct DocLink {
-    line: u32,
-}
-
-impl DocLink {
-    pub(crate) const fn new(line: u32) -> Self {
-        Self { line }
-    }
-}
-
-impl std::fmt::Display for DocLink {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "https://github.com/nvim-gfm/norg-specs/blob/main/1.0-specification.norg#L{}",
-            self.line
-        )
-    }
-}
-
 pub enum NeorgLint {
     EmptyAtModifiers,
     EmptyLink,
@@ -49,14 +28,24 @@ pub enum NeorgLint {
 pub fn document(p: &mut Parser) -> SyntaxNode {
     let m = p.start();
 
+    let mut count = p.skip_whitespace();
     // stops on Eof
     p.iter_while(None, |p| {
-        p.skip_whitespace();
+        // let count = p.skip_whitespace();
 
         match p.current() {
-            T![Asterisk] => heading(p),
+            T![Pound] => {
+                if count < 3 {
+                    heading(p)
+                } else {
+                    code(p);
+                }
+            }
+            T![GreaterThan] => quote(p),
             T![Hyphen] => unorderedlist(p),
-            _ => paragraph(p),
+            _ => {
+                count = paragraph(p);
+            }
         }
     });
     p.bump(T![Eof]);
@@ -79,6 +68,7 @@ pub fn document(p: &mut Parser) -> SyntaxNode {
 // ),
 fn paragraph_segment(p: &mut Parser) {
     let m = p.start();
+
     while !p.is_at_eof() {
         match p.current() {
             SyntaxKind::Eof | SyntaxKind::LineEnding => {
@@ -86,36 +76,17 @@ fn paragraph_segment(p: &mut Parser) {
                 p.eat();
                 break;
             }
+            SyntaxKind::LessThan => {
+                let m = p.start();
+                p.eat_until(syntax_set!(LineEnding, ParaBreak, GreaterThan));
+                p.wrap(m, SyntaxKind::HtmlTag);
+            }
             SyntaxKind::ParaBreak => break,
-            // SyntaxKind::Slash => parse_attached_modifiers(p),
+            SyntaxKind::LCurly => linkable(p),
+            any if DELIMITER_PAIR.contains(&any) => parse_attached_modifiers(p),
             _ => p.eat(),
         }
     }
-    // while !p.at_set(syntax_set!(Eof, LineEnding, ParaBreak)) {
-    //     let last_cursor = p.cursor;
-    //     match p.current() {
-    //         SyntaxKind::LCurly => p.eat(),
-    //         other if ATTACHED_MODIFIERS.contains(other) => {
-    //             paragraph_element(p);
-    //         }
-    //         _ => p.eat(),
-    //     }
-    //     p.assert_movement(last_cursor);
-    // }
-    // match p.is_at_eof() {
-    //     true if p.current() == SyntaxKind::Eof => p.eat(),
-    //     true => {}
-    //     false => {
-    //         let kind = p.current();
-    //         match kind {
-    //             SyntaxKind::LineEnding | SyntaxKind::ParaBreak => {
-    //                 eat_breaks(p);
-    //             }
-    //             _ => p.unexpected(),
-    //         }
-    //         p.bump_line();
-    //     }
-    // }
     p.wrap(m, T![ParaSegment]);
 }
 
@@ -137,34 +108,63 @@ fn paragraph_element(p: &mut Parser) {
         SyntaxKind::RParen => (),
         SyntaxKind::RCurly => (),
         SyntaxKind::RSquare => (),
+        SyntaxKind::LessThan => {
+            let m = p.start();
+            p.eat_until(syntax_set!(LineEnding, ParaBreak, LessThan));
+            p.wrap(m, SyntaxKind::HtmlTag);
+        }
         any if ATTACHED_MODIFIERS.contains(any) => parse_attached_modifiers(p),
         _ => (),
     }
 }
-fn eat_breaks(p: &mut Parser) {
+
+fn eat_breaks(p: &mut Parser) -> usize {
+    let mut count = 0;
     while !p.is_at_eof() {
         match p.current() {
             SyntaxKind::LineEnding => {
-                p.eat();
+                p.eat_and_get().text().chars().for_each(|ch| match ch {
+                    '\n' => count = 0,
+                    '\t' => {
+                        count += 4;
+                    }
+                    _ => {
+                        count += 1;
+                    }
+                });
                 p.bump_line();
             }
             SyntaxKind::ParaBreak => {
-                p.eat();
+                p.eat_and_get().text().chars().for_each(|ch| match ch {
+                    '\n' => count = 0,
+                    '\t' => {
+                        count += 4;
+                    }
+                    _ => {
+                        count += 1;
+                    }
+                });
                 p.bump_line();
                 p.bump_line();
             }
             _ => break,
         }
     }
+    count
 }
 
-fn paragraph(p: &mut Parser) {
+fn paragraph(p: &mut Parser) -> usize {
+    let mut count = 0;
     let m = p.start();
     let last_cursor = p.cursor;
     looper!(!p.is_at_eof(), {
         match p.current() {
-            SyntaxKind::ParaBreak | SyntaxKind::LineEnding => {
-                eat_breaks(p);
+            SyntaxKind::LineEnding => {
+                count = eat_breaks(p);
+                // break;
+            }
+            SyntaxKind::ParaBreak => {
+                count = eat_breaks(p);
                 break;
             }
             _ => paragraph_segment(p),
@@ -174,6 +174,7 @@ fn paragraph(p: &mut Parser) {
     p.assert_movement(last_cursor);
 
     p.wrap(m, SyntaxKind::Paragraph);
+    count
 }
 
 fn quote(p: &mut Parser) {
@@ -184,15 +185,104 @@ fn quote(p: &mut Parser) {
     p.wrap(m, T![Quote]);
 }
 
-fn heading(p: &mut Parser) {
+fn code(p: &mut Parser) {
     let m = p.start();
-    p.eat_many_in_set(syntax_set!(Asterisk));
-    p.expect(T![WhiteSpace]);
-    looper!(!p.is_at_eof(), {
-        match p.current() {
-            SyntaxKind::Eof | SyntaxKind::LineEnding | SyntaxKind::ParaBreak => break,
-            _ => p.eat(),
+    p.eat_until(syntax_set!(LineEnding, ParaBreak));
+    p.wrap(m, T![InlineCode]);
+}
+
+// Example: 32, 33, 34, 35, -36- , 37, 38, 39, 40, 41, -42-, -43-, -44-
+fn heading(p: &mut Parser) {
+    p.assert(T![Pound]);
+    let m = p.start();
+    let count = p.eat_many_counted(T![Pound]);
+    let mut end_count = 0;
+    let exists = p.expect(T![WhiteSpace]);
+    let terminators = syntax_set!(LineEnding, ParaBreak, Eof);
+
+    while !p.at_set(terminators) {
+        // # foo #####
+        //      ^
+        //      stops here
+        if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
+            break;
         }
-    });
-    p.wrap(m, SyntaxKind::Heading);
+        p.eat();
+    }
+
+    if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
+        p.eat(); // WhiteSpace
+        println!("this is Pound: => {}", p.current());
+        // end_count = p.eat_many_counted(T![Pound]);
+        let mut n = 0;
+        while p.at(T![Pound]) && p.next() == Some(SyntaxKind::Pound) {
+            p.eat();
+            n += 1;
+        }
+        // # foo #####
+        //          ^ one more `#` to eat
+        n += 1;
+        end_count = n;
+    }
+    println!("this is : => {}", p.current());
+    //
+    //
+    //        // p.assert(T![Pound]);
+    //       //  p.expect(T![Pound]);
+    //         end_count = n;
+    //
+    //         // # foo ######
+    //         //            ^ we are at last `#`
+    //
+    //
+    //
+    //
+    //         if count > end_count {
+    //
+    //             p.expect(T![Pound]);
+    //         }
+    //
+    //         // if p.current() == SyntaxKind::Pound && p.next() != Some(SyntaxKind::Pound) {
+    //        // if count > end_count {
+    //         //    p.expect(T![Pound]);
+    //         //     //                 end_count += 1;
+    //      //   } else if count < end_count {
+    //        //     p.unexpected_with_hint("consider removing this extra `#`");
+    //       //  }
+    //         //
+    //         //     // current is `#` and next is also `#`
+    //         // } else {
+    //         // end_count += 1;
+    //         // }
+    //        // p.eat_until(terminators);
+    //     } else {
+    //         p.eat();
+    //     }
+    // }
+    // 01) havn't considered the optional `#` sequence at the end rule
+
+    println!("count: {}, end_count: {}", count, end_count);
+    //if count == end_count {
+    // eat_breaks(p);
+    //}
+    if count <= 6 && exists {
+        p.wrap(m, SyntaxKind::Heading);
+    } else {
+        p.wrap(m, SyntaxKind::Paragraph);
+    }
+}
+
+fn linkable(p: &mut Parser) {
+    // {./README.md}[readme]
+    let m = p.start();
+
+    let current = p.current();
+    p.eat(); // `{`
+    p.eat_until(syntax_set!(Eof, LineEnding, ParaBreak, RCurly));
+    p.expect_closing_delimiter(m, current.corresponding_pair_unchecked());
+    let current = p.current();
+    p.expect(T![LSquare]);
+    p.eat_until(syntax_set!(Eof, LineEnding, ParaBreak, RSquare));
+    p.expect_closing_delimiter(m, current.corresponding_pair_unchecked());
+    p.wrap(m, SyntaxKind::Link);
 }

@@ -1,28 +1,39 @@
-#[cfg(feature = "tower-lsp")]
-pub(crate) use tower_lsp::lsp_types as lsp;
-
-#[cfg(all(not(feature = "tower-lsp"), feature = "lsp-types"))]
-pub(crate) use lsp_types as lsp;
+//! # SemanticTokenTypes
+//!
+//! this module exports only one thing
+//!
+//! const LEGEND_TYPE
 
 #[macro_export]
-macro_rules! semtype {
+macro_rules! SemanticTokenType {
     ($tag:literal) => {
-        lsp::SemanticTokenType::new($tag)
+        tower_lsp::lsp_types::SemanticTokenType::new($tag)
     };
 }
 
-pub const LEGEND_TYPE: &[lsp::SemanticTokenType] = &[
-    lsp::SemanticTokenType::new("gfm.text"),   // 0
-    lsp::SemanticTokenType::new("gfm.heading"), // 9
-    lsp::SemanticTokenType::VARIABLE,             // 1
-    lsp::SemanticTokenType::STRING,               // 2
-    lsp::SemanticTokenType::COMMENT,              // 3
-    lsp::SemanticTokenType::NUMBER,               // 4
-    lsp::SemanticTokenType::KEYWORD,              // 5
-    lsp::SemanticTokenType::OPERATOR,             // 6
-    lsp::SemanticTokenType::PARAMETER,            // 7
-    lsp::SemanticTokenType::new("gfm.quote"),   // 8
-    lsp::SemanticTokenType::new("gfm.italics"), // 10
-    lsp::SemanticTokenType::new("gfm.bold"),    // 11
-    lsp::SemanticTokenType::FUNCTION,             // 12
-];
+macro_rules! SemanticTokenTypes {
+    ($($tag:literal),* $(,)?) => {
+        pub const LEGEND_TYPE: &[tower_lsp::lsp_types::SemanticTokenType] = &[
+            $(
+                tower_lsp::lsp_types::SemanticTokenType::new($tag),
+            )*
+        ];
+    }
+}
+
+SemanticTokenTypes! {
+    "gfm.text",
+    "gfm.heading",
+    "gfm.quote",
+    "gfm.bold",
+    "gfm.italic",
+    "gfm.underline",
+    "gfm.strikethrough",
+    "gfm.spoiler",
+    "gfm.superscript",
+    "gfm.subscript",
+    "gfm.inlinecode",
+    "gfm.nullmodifier",
+    "gfm.inlinemath",
+    "gfm.variable",
+}

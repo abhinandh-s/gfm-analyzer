@@ -157,24 +157,51 @@ impl Parser {
         n
     }
 
+    // eat until we get these tokens. no need to put Eof
+    pub(crate) fn eat_until(&mut self, terminators: SyntaxSet) {
+        let set = terminators.add(T![Eof]);
+        while !self.at_set(set) {
+            self.eat();
+        }
+    }
+
     pub(crate) fn eat_many(&mut self, eatable: SyntaxKind) {
         while self.at(eatable) {
             self.eat();
         }
     }
 
-    pub(crate) fn eat_many_in_set(&mut self, eatable: SyntaxSet) {
-        while self.at_set(eatable) {
+    pub(crate) fn eat_many_in_set(&mut self, eatables: SyntaxSet) {
+        while self.at_set(eatables) {
             self.eat();
         }
     }
 
-    // eats many `WhiteSpace` & `Tab`
-    pub(crate) fn skip_whitespace(&mut self) {
-        while self.at_set(syntax_set!(WhiteSpace, Tab)) {
+    pub(crate) fn eat_many_counted_set(&mut self, eatable: SyntaxSet) -> usize {
+        let mut n = 0;
+        while self.at_set(eatable) {
             self.eat();
+            n += 1;
         }
+        n
     }
+
+    // eats many `WhiteSpace` & `Tab`
+    pub(crate) fn skip_whitespace(&mut self) -> usize {
+        let mut n = 0;
+        while self.at_set(syntax_set!(WhiteSpace, Tab)) {
+            let a = self.eat_and_get();
+            a.text().chars().for_each(|char| {
+                if char == '\t' {
+                    n += 4;
+                } else {
+                    n += 1;
+                }
+            });
+        }
+        n
+    }
+    
     /// Eat the token if at `kind`. Returns `true` if eaten.
     ///
     /// Note: In Math and Code, this will ignore trivia in front of the
@@ -237,6 +264,26 @@ impl Parser {
     pub(crate) fn unexpected_with_hint(&mut self, hint: impl Into<String>) {
         self.eat_and_get().unexpected_with_hint(hint);
     }
+
+    // alpha
+    pub fn doc_ref(&mut self, line_number: &str) {
+        let node = self.eat_and_get();
+        if node.erroneous() {
+            node.hint(format!(
+                "https://github.com/nvim-gfm/norg-specs/blob/main/1.0-specification.norg#L{}",
+                line_number
+            ));
+        }
+    }
+
+    // alpha
+    pub fn hint(&mut self, hint: impl Into<String>) {
+        let node = self.eat_and_get();
+        if node.erroneous() {
+            node.hint(hint);
+        }
+    }
+
     /// Produce an error that the given `thing` was expected at the position
     /// of the marker `m`.
     pub(crate) fn expected_at(&mut self, m: Marker, thing: &str) {

@@ -1,6 +1,7 @@
 use std::ops::Deref;
 use std::sync::Arc;
 
+use crate::highlight::LEGEND_TYPE;
 use crate::{Location, Span, SyntaxKind, Token, token};
 
 // match node.node_type_flags() {
@@ -193,6 +194,18 @@ impl SyntaxNode {
     /// Create a new error node.
     pub fn error(error: SyntaxError, text: impl Into<String>) -> Self {
         ErrorNode::new(error, text).into()
+    }
+
+    pub fn is_leaf(&self) -> bool {
+        matches!(&self.0, Repr::Leaf(_))
+    }
+
+    pub fn is_inner(&self) -> bool {
+        matches!(&self.0, Repr::Inner(_))
+    }
+    
+    pub fn is_error(&self) -> bool {
+        matches!(&self.0, Repr::Error(_))
     }
 
     /// Create a dummy node of the given kind.
@@ -856,8 +869,21 @@ impl SyntaxNode {
             }
             Repr::Inner(inner_node) => {
                 let old_type = *token_type;
-                if inner_node.kind() == SyntaxKind::Heading {
-                    *token_type = 1;
+                match inner_node.kind() {
+                    SyntaxKind::Heading => *token_type = legend_pos("gfm.heading"),
+                    SyntaxKind::Quote => *token_type = legend_pos("gfm.quote"),
+                    SyntaxKind::Bold => *token_type = legend_pos("gfm.bold"),
+                    SyntaxKind::Italics => *token_type = legend_pos("gfm.italic"),
+                    SyntaxKind::UnderLine => *token_type = legend_pos("gfm.underline"),
+                    SyntaxKind::StrikeThrough => *token_type = legend_pos("gfm.strikethrough"),
+                    SyntaxKind::Spoiler => *token_type = legend_pos("gfm.spoiler"),
+                    SyntaxKind::Superscript => *token_type = legend_pos("gfm.superscript"),
+                    SyntaxKind::Subscript => *token_type = legend_pos("gfm.subscript"),
+                    SyntaxKind::InlineCode => *token_type = legend_pos("gfm.inlinecode"),
+                    SyntaxKind::NullModifier => *token_type = legend_pos("gfm.nullmodifier"),
+                    SyntaxKind::InlineMath => *token_type = legend_pos("gfm.inlinemath"),
+                    SyntaxKind::Variable => *token_type = legend_pos("gfm.variable"),
+                    _ => (),
                 }
                 for i in &inner_node.children {
                     Self::helper(i, prev_line, prev_col, token_type, result);
@@ -867,6 +893,13 @@ impl SyntaxNode {
             Repr::Error(_) => {}
         }
     }
+}
+
+fn legend_pos(typ: &str) -> u32 {
+    LEGEND_TYPE
+        .iter()
+        .position(|p| p.as_str() == typ)
+        .unwrap_or_default() as u32
 }
 
 #[cfg(test)]
