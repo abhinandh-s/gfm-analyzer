@@ -11,6 +11,10 @@ fn main() {
 
 Example 42
 
+## foo ## 
+
+# foo ###
+
 ##### foo ##"##;
 
     println!("{}", cst!(source).display());

@@ -205,17 +205,73 @@ fn heading(p: &mut Parser) {
         //      ^
         //      stops here
         if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
-            break;
+            p.eat(); // WhiteSpace 
+
+            let mut n = 0;
+            while p.at(T![Pound]) && p.next() == Some(T![Pound]) {
+                p.eat();
+                n += 1;
+            }
+            end_count = n;
+            // # foo #####
+            //          ^
+            //          here one more `#` left
+            p.assert(T![Pound]);
+            end_count += 1;
+
+            // # foo ####
+            //          ^ afer this last `#` is `\n` or `\n\n` or `\0`
+            //
+            //          eat `#` then heading marker number rule
+            let tok_after_pound_is_terminator = matches!(
+                p.next(),
+                Some(T![LineEnding]) | Some(T![ParaBreak]) | Some(T![Eof])
+            );
+            // # foo ####
+            //          ^ afer this last `#` there is a `   ` and next is `\n` or `\n\n` or `\0`
+            //
+            //          eat `#`, eat `   ` then heading marker number rule
+            let white_space_then_terminators = matches!(
+                p.kind_at(2),
+                Some(T![LineEnding]) | Some(T![ParaBreak]) | Some(T![Eof])
+            ) && p.next() == Some(T![WhiteSpace]);
+
+            if count == end_count {
+                p.eat();
+                break;
+            } else if count > end_count {
+                if tok_after_pound_is_terminator || white_space_then_terminators {
+                    {
+                        let node = p.eat_and_get(); // eat Pound
+                        node.convert_to_error(format!(
+                            "opening `#` count {} does not match closing `#` count {}",
+                            count, end_count
+                        ));
+                        let n = count.saturating_sub(end_count);
+                        node.hint(format!("consider adding {} `#` after `#`", n));
+                    }
+                    break;
+                } else {
+                    p.eat_until(terminators);
+                }
+            } else if count < end_count {
+                if tok_after_pound_is_terminator || white_space_then_terminators {
+                    p.unexpected();
+                } else {
+                    p.eat_until(terminators);
+                }
+            }
+        } else {
+            p.eat();
         }
-        p.eat();
     }
 
     // # foo #####
     //      ^
     //      parse from here
     if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
-    p.eat();
-    // only `#` left
+        p.eat();
+        // only `#` left
     }
 
     // # foo ##### dhosfnlfdjkhjk
@@ -274,6 +330,10 @@ fn heading(p: &mut Parser) {
     // 01) havn't considered the optional `#` sequence at the end rule
 
     println!("count: {}, end_count: {}", count, end_count);
+
+    // # foo ##### dhosfnlfdjkhjk
+    //            ^
+    //            from here is dealed
     if !p.at_set(terminators) {
         p.eat_until(terminators);
     }

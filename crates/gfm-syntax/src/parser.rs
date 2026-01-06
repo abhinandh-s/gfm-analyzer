@@ -89,7 +89,13 @@ impl Parser {
     }
 
     #[track_caller]
-    fn kind_at(&self, index: usize) -> SyntaxKind {
+    pub(crate) fn kind_at(&self, idx: usize) -> Option<SyntaxKind> {
+        let index = self.cursor + idx;
+        self.tokens.get(index).map(|d| d.kind())
+    }
+
+    #[track_caller]
+    fn kind_at_unchecked(&self, index: usize) -> SyntaxKind {
         if index >= self.tokens.len() {
             T![Eof]
         } else {
@@ -98,7 +104,7 @@ impl Parser {
     }
 
     pub(crate) fn current(&self) -> SyntaxKind {
-        self.kind_at(self.cursor)
+        self.kind_at_unchecked(self.cursor)
     }
 
     pub(crate) fn next(&self) -> Option<SyntaxKind> {
@@ -110,7 +116,7 @@ impl Parser {
     }
 
     pub(crate) fn nth(&self, n: usize) -> SyntaxKind {
-        self.kind_at(n)
+        self.kind_at_unchecked(n)
     }
 
     pub(crate) fn prev(&self) -> Option<SyntaxKind> {
@@ -201,7 +207,7 @@ impl Parser {
         }
         n
     }
-    
+
     /// Eat the token if at `kind`. Returns `true` if eaten.
     ///
     /// Note: In Math and Code, this will ignore trivia in front of the
