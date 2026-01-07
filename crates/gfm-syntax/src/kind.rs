@@ -82,8 +82,11 @@ pub enum SyntaxKind {
     LinkLocation,
     LinkDescription,
     Link,
-    __LAST,
     HtmlTag,
+    Inline,
+    ThematicBreaks,
+    HardLineBreaks,
+    __LAST,
 }
 
 impl SyntaxKind {

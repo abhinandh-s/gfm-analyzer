@@ -1,0 +1,16 @@
+---
+source: crates/gfm-syntax/src/grammer/mod.rs
+expression: output
+---
+Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  Paragraph [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+    Pound: "#" [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+    Error: "5" (expected `WhiteSpace`) [ offsets: 1, position: ( line: 0, col: 1 ) ] ]
+    Inline [ offsets: 2, position: ( line: 0, col: 2 ) ] ]
+      WhiteSpace: " " [ offsets: 2, position: ( line: 0, col: 2 ) ] ]
+      Word: "bolt" [ offsets: 3, position: ( line: 0, col: 3 ) ] ]
+    ParaBreak: "\n\n" [ offsets: 7, position: ( line: 0, col: 7 ) ] ]
+  Paragraph [ offsets: 9, position: ( line: 2, col: 0 ) ] ]
+    Pound: "#" [ offsets: 9, position: ( line: 2, col: 0 ) ] ]
+    Error: "hashtag" (expected `WhiteSpace`) [ offsets: 10, position: ( line: 2, col: 1 ) ] ]
+  Eof: "\0" [ offsets: 17, position: ( line: 2, col: 8 ) ] ]

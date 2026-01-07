@@ -1,0 +1,17 @@
+---
+source: crates/gfm-syntax/src/grammer/mod.rs
+expression: output
+---
+Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  Paragraph [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+    Pound: "#" [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+    Pound: "#" [ offsets: 1, position: ( line: 0, col: 1 ) ] ]
+    Pound: "#" [ offsets: 2, position: ( line: 0, col: 2 ) ] ]
+    Pound: "#" [ offsets: 3, position: ( line: 0, col: 3 ) ] ]
+    Pound: "#" [ offsets: 4, position: ( line: 0, col: 4 ) ] ]
+    Pound: "#" [ offsets: 5, position: ( line: 0, col: 5 ) ] ]
+    Pound: "#" [ offsets: 6, position: ( line: 0, col: 6 ) ] ]
+    WhiteSpace: " " [ offsets: 7, position: ( line: 0, col: 7 ) ] ]
+    Inline [ offsets: 8, position: ( line: 0, col: 8 ) ] ]
+      Word: "foo" [ offsets: 8, position: ( line: 0, col: 8 ) ] ]
+  Eof: "\0" [ offsets: 11, position: ( line: 0, col: 11 ) ] ]

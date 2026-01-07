@@ -1,0 +1,15 @@
+---
+source: crates/gfm-syntax/src/grammer/mod.rs
+expression: output
+---
+Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  Paragraph [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+    Inline [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+      Word: "aaa" [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+    LineEnding: "\n             " [ offsets: 3, position: ( line: 0, col: 3 ) ] ]
+    Inline [ offsets: 17, position: ( line: 1, col: 0 ) ] ]
+      Word: "bbb" [ offsets: 17, position: ( line: 1, col: 0 ) ] ]
+    LineEnding: "\n                                       " [ offsets: 20, position: ( line: 1, col: 3 ) ] ]
+    Inline [ offsets: 60, position: ( line: 2, col: 0 ) ] ]
+      Word: "ccc" [ offsets: 60, position: ( line: 2, col: 0 ) ] ]
+  Eof: "\0" [ offsets: 63, position: ( line: 2, col: 3 ) ] ]

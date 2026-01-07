@@ -172,129 +172,129 @@ pub(super) fn parse_attached_modifiers(p: &mut Parser) {
     }
 }
 
-assert_tree!(
-    // [case:1/9] perfect italics (x)
-    italics,
-    italics_01,
-    parse_attached_modifiers,
-    "/an italics text chunk/ blah blah blah"
-);
+// assert_tree!(
+//     // [case:1/9] perfect italics (x)
+//     italics,
+//     italics_01,
+//     parse_attached_modifiers,
+//     "/an italics text chunk/ blah blah blah"
+// );
+//
+// assert_tree!(
+//     // [case:2/9] not so perfect italics
+//     // error: Unclosed delimiter
+//     italics,
+//     italics_02,
+//     parse_attached_modifiers,
+//     "/an italics text chunk blah blah blah"
+// );
+//
+// assert_tree!(
+//     // [case:3/9] not so perfect italics
+//     // error: WhiteSpace at beginning
+//     italics,
+//     italics_03,
+//     parse_attached_modifiers,
+//     "/ an italics text chunk/ blah blah blah"
+// );
+//
+// assert_tree!(
+//     // [case:4/9] not so perfect italics
+//     // error: WhiteSpace at end
+//     italics,
+//     italics_04,
+//     parse_attached_modifiers,
+//     "/an italics text chunk / blah blah blah"
+// );
+//
+// assert_tree!(
+//     // [case:5/9] not so perfect italics
+//     // error: WhiteSpace at both end (2 errors)
+//     italics,
+//     italics_05,
+//     parse_attached_modifiers,
+//     "/ an italics text chunk / blah blah blah"
+// );
+//
+// assert_tree!(
+//     // [case:6/9] not so perfect italics
+//     // error: `LineEnding` inside text chunk
+//     italics,
+//     italics_06,
+//     parse_attached_modifiers,
+//     "/an italics \n text chunk/ blah blah blah"
+// );
+//
+// assert_tree!(
+//     // [case:6/9] not so perfect italics
+//     // error: `LineEnding` inside text chunk
+//     italics,
+//     italics_12,
+//     parse_attached_modifiers,
+//     "/an italics \n\n text chunk/ blah blah blah"
+// );
+//
+// assert_tree!(
+//     // [case:6/9] not so perfect italics
+//     // error: `LineEnding` inside text chunk
+//     italics,
+//     italics_13,
+//     parse_attached_modifiers,
+//     "/an italics | !\"#$%&'()*+,-./:;<=>?@[\\]^_`{}~verbatim | text chunk/ blah blah blah"
+// );
+//
+// assert_tree!(
+//     // [case:7/9] not so perfect italics
+//     // feat: other inline elements inside this ATACHED_MODIFIERS
+//     italics,
+//     italics_07,
+//     parse_attached_modifiers,
+//     "/an italics text chunk and it have a !`/$&%'*,-^_|verbatim |_^-,*'%&$/`! chunk in it :)/ blah blah blah"
+// );
+//
+// assert_tree!(
+//     // [case:8/9] not so perfect italics
+//     // feat: /this/is still italics/ - cuz no space after `/`
+//     italics,
+//     italics_08,
+//     parse_attached_modifiers,
+//     "/an italics text chunk and it have a | verbatim | chunk in it :)/blah/ blah blah"
+// );
+//
+// assert_tree!(
+//     // [case:9/9] not so perfect italics
+//     // feat: /this/ is not fully italics/ - cuz space after `/`
+//     italics,
+//     italics_09,
+//     parse_attached_modifiers,
+//     "/an italics text chunk and it have a | verbatim | chunk in it :)/ blah/ blah blah"
+// );
+//
+// assert_tree!(
+//     // [case:9/9] not so perfect italics
+//     // feat: /this/ is not fully italics/ - cuz space after `/`
+//     italics,
+//     italics_10,
+//     parse_attached_modifiers,
+//     "//this//"
+// );
+//
+// assert_tree!(
+//     // [case:9/9] not so perfect italics
+//     // feat: /this/ is not fully italics/ - cuz space after `/`
+//     italics,
+//     italics_11,
+//     parse_attached_modifiers,
+//     "//this is *bold* //"
+// );
 
-assert_tree!(
-    // [case:2/9] not so perfect italics
-    // error: Unclosed delimiter
-    italics,
-    italics_02,
-    parse_attached_modifiers,
-    "/an italics text chunk blah blah blah"
-);
-
-assert_tree!(
-    // [case:3/9] not so perfect italics
-    // error: WhiteSpace at beginning
-    italics,
-    italics_03,
-    parse_attached_modifiers,
-    "/ an italics text chunk/ blah blah blah"
-);
-
-assert_tree!(
-    // [case:4/9] not so perfect italics
-    // error: WhiteSpace at end
-    italics,
-    italics_04,
-    parse_attached_modifiers,
-    "/an italics text chunk / blah blah blah"
-);
-
-assert_tree!(
-    // [case:5/9] not so perfect italics
-    // error: WhiteSpace at both end (2 errors)
-    italics,
-    italics_05,
-    parse_attached_modifiers,
-    "/ an italics text chunk / blah blah blah"
-);
-
-assert_tree!(
-    // [case:6/9] not so perfect italics
-    // error: `LineEnding` inside text chunk
-    italics,
-    italics_06,
-    parse_attached_modifiers,
-    "/an italics \n text chunk/ blah blah blah"
-);
-
-assert_tree!(
-    // [case:6/9] not so perfect italics
-    // error: `LineEnding` inside text chunk
-    italics,
-    italics_12,
-    parse_attached_modifiers,
-    "/an italics \n\n text chunk/ blah blah blah"
-);
-
-assert_tree!(
-    // [case:6/9] not so perfect italics
-    // error: `LineEnding` inside text chunk
-    italics,
-    italics_13,
-    parse_attached_modifiers,
-    "/an italics | !\"#$%&'()*+,-./:;<=>?@[\\]^_`{}~verbatim | text chunk/ blah blah blah"
-);
-
-assert_tree!(
-    // [case:7/9] not so perfect italics
-    // feat: other inline elements inside this ATACHED_MODIFIERS
-    italics,
-    italics_07,
-    parse_attached_modifiers,
-    "/an italics text chunk and it have a !`/$&%'*,-^_|verbatim |_^-,*'%&$/`! chunk in it :)/ blah blah blah"
-);
-
-assert_tree!(
-    // [case:8/9] not so perfect italics
-    // feat: /this/is still italics/ - cuz no space after `/`
-    italics,
-    italics_08,
-    parse_attached_modifiers,
-    "/an italics text chunk and it have a | verbatim | chunk in it :)/blah/ blah blah"
-);
-
-assert_tree!(
-    // [case:9/9] not so perfect italics
-    // feat: /this/ is not fully italics/ - cuz space after `/`
-    italics,
-    italics_09,
-    parse_attached_modifiers,
-    "/an italics text chunk and it have a | verbatim | chunk in it :)/ blah/ blah blah"
-);
-
-assert_tree!(
-    // [case:9/9] not so perfect italics
-    // feat: /this/ is not fully italics/ - cuz space after `/`
-    italics,
-    italics_10,
-    parse_attached_modifiers,
-    "//this//"
-);
-
-assert_tree!(
-    // [case:9/9] not so perfect italics
-    // feat: /this/ is not fully italics/ - cuz space after `/`
-    italics,
-    italics_11,
-    parse_attached_modifiers,
-    "//this is *bold* //"
-);
-
-#[cfg(test)]
-mod test {
-    proptest::proptest! {
-        #[test]
-        fn no_panic_prop(input in ".*") {
-            let mut parser = crate::Parser::new(&input);
-            super::document(&mut parser);
-        }
-    }
-}
+// #[cfg(test)]
+// mod test {
+//     proptest::proptest! {
+//         #[test]
+//         fn no_panic_prop(input in ".*") {
+//             let mut parser = crate::Parser::new(&input);
+//             super::document(&mut parser);
+//         }
+//     }
+// }

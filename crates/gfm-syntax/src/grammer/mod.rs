@@ -28,12 +28,18 @@ pub enum NeorgLint {
 pub fn document(p: &mut Parser) -> SyntaxNode {
     let m = p.start();
 
+    let mut n = 0;
     let mut count = p.skip_whitespace();
     // stops on Eof
     p.iter_while(None, |p| {
         // let count = p.skip_whitespace();
 
+        println!("n = {n}, current: {}", p.current());
+
         match p.current() {
+            T![WhiteSpace] => {
+                count = p.skip_whitespace();
+            }
             T![Pound] => {
                 if count < 3 {
                     heading(p)
@@ -44,9 +50,15 @@ pub fn document(p: &mut Parser) -> SyntaxNode {
             T![GreaterThan] => quote(p),
             T![Hyphen] => unorderedlist(p),
             _ => {
-                count = paragraph(p);
+                if count > 3 {
+                    code(p);
+                    count = 0;
+                } else {
+                    count = paragraph(p)
+                }
             }
         }
+        n += 1;
     });
     p.bump(T![Eof]);
     p.wrap(m, T![Document]);
@@ -161,13 +173,12 @@ fn paragraph(p: &mut Parser) -> usize {
         match p.current() {
             SyntaxKind::LineEnding => {
                 count = eat_breaks(p);
-                // break;
             }
             SyntaxKind::ParaBreak => {
                 count = eat_breaks(p);
                 break;
             }
-            _ => paragraph_segment(p),
+            _ => inline(p),
         }
     });
 
@@ -188,24 +199,75 @@ fn quote(p: &mut Parser) {
 fn code(p: &mut Parser) {
     let m = p.start();
     p.eat_until(syntax_set!(LineEnding, ParaBreak));
+    eat_breaks(p);
     p.wrap(m, T![InlineCode]);
 }
 
-// Example: 32, 33, 34, 35, -36- , 37, 38, 39, 40, 41, -42-, -43-, -44-
+#[allow(clippy::print_stdout)]
+fn inline(p: &mut Parser) {
+    let m = p.start();
+
+    let mut n = 0;
+
+    while !p.is_at_eof() {
+        println!("{}", n);
+        match p.current() {
+            SyntaxKind::ForwardSlash if p.next() == Some(T![LineEnding]) => {
+                let m = p.start();
+                p.eat();
+                p.wrap(m, SyntaxKind::HardLineBreaks);
+            }
+            SyntaxKind::WhiteSpace if p.next() == Some(T![LineEnding]) => {
+                let m = p.start();
+                let n = p.eat_and_get().text().chars().count();
+                if n >= 2 {
+                    p.wrap(m, SyntaxKind::HardLineBreaks);
+                }
+            }
+            SyntaxKind::LessThan => {
+                let m = p.start();
+                p.eat_until(syntax_set!(LineEnding, ParaBreak, GreaterThan));
+                p.wrap(m, SyntaxKind::HtmlTag);
+            }
+            SyntaxKind::ParaBreak | SyntaxKind::LineEnding => break,
+            SyntaxKind::LCurly => linkable(p),
+            any if DELIMITER_PAIR.contains(&any) => parse_attached_modifiers(p),
+            any if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) => break,
+            _ => {
+                p.eat();
+            }
+        }
+        n += 1;
+    }
+    p.wrap(m, T![Inline]);
+}
+
+#[allow(clippy::print_stdout)]
 fn heading(p: &mut Parser) {
     p.assert(T![Pound]);
     let m = p.start();
     let count = p.eat_many_counted(T![Pound]);
-    let mut end_count = 0;
     let exists = p.expect(T![WhiteSpace]);
     let terminators = syntax_set!(LineEnding, ParaBreak, Eof);
-
+    let mut n = 0;
     while !p.at_set(terminators) {
+        println!("{}", n);
+        if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
+            p.eat();
+            p.eat_many(T![Pound]);
+        } else {
+            inline(p);
+        }
+        n += 1;
+    }
+    /*
+     while !p.at_set(terminators) {
         // # foo #####
         //      ^
         //      stops here
         if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
-            p.eat(); // WhiteSpace 
+            p.eat(); // WhiteSpace
+            let mut end_count: usize;
 
             let mut n = 0;
             while p.at(T![Pound]) && p.next() == Some(T![Pound]) {
@@ -223,7 +285,7 @@ fn heading(p: &mut Parser) {
             //          ^ afer this last `#` is `\n` or `\n\n` or `\0`
             //
             //          eat `#` then heading marker number rule
-            let tok_after_pound_is_terminator = matches!(
+            let _tok_after_pound_is_terminator = matches!(
                 p.next(),
                 Some(T![LineEnding]) | Some(T![ParaBreak]) | Some(T![Eof])
             );
@@ -231,7 +293,7 @@ fn heading(p: &mut Parser) {
             //          ^ afer this last `#` there is a `   ` and next is `\n` or `\n\n` or `\0`
             //
             //          eat `#`, eat `   ` then heading marker number rule
-            let white_space_then_terminators = matches!(
+            let _white_space_then_terminators = matches!(
                 p.kind_at(2),
                 Some(T![LineEnding]) | Some(T![ParaBreak]) | Some(T![Eof])
             ) && p.next() == Some(T![WhiteSpace]);
@@ -239,97 +301,11 @@ fn heading(p: &mut Parser) {
             if count == end_count {
                 p.eat();
                 break;
-            } else if count > end_count {
-                if tok_after_pound_is_terminator || white_space_then_terminators {
-                    {
-                        let node = p.eat_and_get(); // eat Pound
-                        node.convert_to_error(format!(
-                            "opening `#` count {} does not match closing `#` count {}",
-                            count, end_count
-                        ));
-                        let n = count.saturating_sub(end_count);
-                        node.hint(format!("consider adding {} `#` after `#`", n));
-                    }
-                    break;
-                } else {
-                    p.eat_until(terminators);
-                }
-            } else if count < end_count {
-                if tok_after_pound_is_terminator || white_space_then_terminators {
-                    p.unexpected();
-                } else {
-                    p.eat_until(terminators);
-                }
             }
         } else {
             p.eat();
         }
     }
-
-    // # foo #####
-    //      ^
-    //      parse from here
-    if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
-        p.eat();
-        // only `#` left
-    }
-
-    // # foo ##### dhosfnlfdjkhjk
-    //            ^
-    //            from here is dealed
-
-    // if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
-    //     p.eat(); // WhiteSpace
-    //     println!("this is Pound: => {}", p.current());
-    //     // end_count = p.eat_many_counted(T![Pound]);
-    //     let mut n = 0;
-    //     while p.at(T![Pound]) && p.next() == Some(SyntaxKind::Pound) {
-    //         p.eat();
-    //         n += 1;
-    //     }
-    //     // # foo #####
-    //     //          ^ one more `#` to eat
-    //     n += 1;
-    //     end_count = n;
-    // }
-    // println!("this is : => {}", p.current());
-    // //
-    //
-    //        // p.assert(T![Pound]);
-    //       //  p.expect(T![Pound]);
-    //         end_count = n;
-    //
-    //         // # foo ######
-    //         //            ^ we are at last `#`
-    //
-    //
-    //
-    //
-    //         if count > end_count {
-    //
-    //             p.expect(T![Pound]);
-    //         }
-    //
-    //         // if p.current() == SyntaxKind::Pound && p.next() != Some(SyntaxKind::Pound) {
-    //        // if count > end_count {
-    //         //    p.expect(T![Pound]);
-    //         //     //                 end_count += 1;
-    //      //   } else if count < end_count {
-    //        //     p.unexpected_with_hint("consider removing this extra `#`");
-    //       //  }
-    //         //
-    //         //     // current is `#` and next is also `#`
-    //         // } else {
-    //         // end_count += 1;
-    //         // }
-    //        // p.eat_until(terminators);
-    //     } else {
-    //         p.eat();
-    //     }
-    // }
-    // 01) havn't considered the optional `#` sequence at the end rule
-
-    println!("count: {}, end_count: {}", count, end_count);
 
     // # foo ##### dhosfnlfdjkhjk
     //            ^
@@ -337,6 +313,10 @@ fn heading(p: &mut Parser) {
     if !p.at_set(terminators) {
         p.eat_until(terminators);
     }
+    eat_breaks(p);
+    */
+    // p.eat_until(terminators);
+    eat_breaks(p);
     if count <= 6 && exists {
         p.wrap(m, SyntaxKind::Heading);
     } else {
@@ -344,8 +324,23 @@ fn heading(p: &mut Parser) {
     }
 }
 
+fn thematic_breaks(p: &mut Parser) {
+    let m = p.start();
+    let kind = p.current();
+    let current = matches!(
+        kind,
+        SyntaxKind::Asterisk | SyntaxKind::Hyphen | SyntaxKind::Underscore
+    );
+    let second = p.next().filter(|k| *k == kind).is_some();
+    let third = p.kind_at(2).filter(|k| *k == kind).is_some();
+    if current && second && third {
+        p.eat_many(kind);
+        p.skip_whitespace();
+        p.wrap(m, SyntaxKind::ThematicBreaks);
+    }
+}
+
 fn linkable(p: &mut Parser) {
-    // {./README.md}[readme]
     let m = p.start();
 
     let current = p.current();
@@ -358,3 +353,4 @@ fn linkable(p: &mut Parser) {
     p.expect_closing_delimiter(m, current.corresponding_pair_unchecked());
     p.wrap(m, SyntaxKind::Link);
 }
+

@@ -647,12 +647,14 @@ fn lex_escaped_char(chars: &mut Peekable<Chars<'_>>) -> Option<Token> {
     }
     let mut len = char.len_utf16();
     chars.next(); // char is '\' so eat it
-    if let Some(char) = chars.peek()
-        && char.is_punctuation()
-    {
-        len += char.len_utf16();
-        return Some(token!(SyntaxKind::EscapedChar, format!("\\{}", &char), len));
+
+    let next_char = *chars.peek()?;
+    if next_char.is_punctuation() {
+        len += next_char.len_utf16();
+        chars.next();
+        return Some(token!(SyntaxKind::EscapedChar, format!("\\{}", next_char), len));
     }
+
     // if there is no punctuation char after `\` then lex it as `ForwardSlash`
     Some(token!(SyntaxKind::ForwardSlash, '\\', len))
 }

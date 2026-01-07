@@ -1,0 +1,27 @@
+---
+source: crates/gfm-syntax/src/grammer/mod.rs
+expression: output
+---
+Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  WhiteSpace: " " [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  Heading [ offsets: 1, position: ( line: 0, col: 1 ) ] ]
+    Pound: "#" [ offsets: 1, position: ( line: 0, col: 1 ) ] ]
+    Pound: "#" [ offsets: 2, position: ( line: 0, col: 2 ) ] ]
+    Pound: "#" [ offsets: 3, position: ( line: 0, col: 3 ) ] ]
+    WhiteSpace: " " [ offsets: 4, position: ( line: 0, col: 4 ) ] ]
+    Inline [ offsets: 5, position: ( line: 0, col: 5 ) ] ]
+      Word: "foo" [ offsets: 5, position: ( line: 0, col: 5 ) ] ]
+    LineEnding: "\n  " [ offsets: 8, position: ( line: 0, col: 8 ) ] ]
+  Heading [ offsets: 11, position: ( line: 1, col: 0 ) ] ]
+    Pound: "#" [ offsets: 11, position: ( line: 1, col: 0 ) ] ]
+    Pound: "#" [ offsets: 12, position: ( line: 1, col: 1 ) ] ]
+    WhiteSpace: " " [ offsets: 13, position: ( line: 1, col: 2 ) ] ]
+    Inline [ offsets: 14, position: ( line: 1, col: 3 ) ] ]
+      Word: "foo" [ offsets: 14, position: ( line: 1, col: 3 ) ] ]
+    LineEnding: "\n   " [ offsets: 17, position: ( line: 1, col: 6 ) ] ]
+  Heading [ offsets: 21, position: ( line: 2, col: 0 ) ] ]
+    Pound: "#" [ offsets: 21, position: ( line: 2, col: 0 ) ] ]
+    WhiteSpace: " " [ offsets: 22, position: ( line: 2, col: 1 ) ] ]
+    Inline [ offsets: 23, position: ( line: 2, col: 2 ) ] ]
+      Word: "foo" [ offsets: 23, position: ( line: 2, col: 2 ) ] ]
+  Eof: "\0" [ offsets: 26, position: ( line: 2, col: 5 ) ] ]

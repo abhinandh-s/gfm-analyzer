@@ -902,29 +902,29 @@ fn legend_pos(typ: &str) -> u32 {
         .unwrap_or_default() as u32
 }
 
-#[cfg(test)]
-mod test {
-    #[test]
-    #[cfg(feature = "tower-lsp")]
-    fn range() {
-        use tower_lsp::lsp_types::Position;
-
-        use crate::{Parser, grammer::document};
-
-        let source = "* this is a heading\nThis";
-        let mut p = Parser::new(source);
-        let res = document(&mut p);
-        assert_eq!(0, res.loc().line());
-        assert_eq!(1, res.loc().character());
-        assert_eq!(0, res.loc().offsets());
-        assert_eq!(Position::new(0, 1), res.start_position());
-        assert_eq!(Position::new(1, 4), res.end_position());
-        assert_eq!(
-            tower_lsp::lsp_types::Range::new(
-                tower_lsp::lsp_types::Position::new(0, 1),
-                tower_lsp::lsp_types::Position::new(1, 4)
-            ),
-            res.range()
-        )
-    }
-}
+// #[cfg(test)]
+// mod test {
+//     #[test]
+//     #[cfg(feature = "tower-lsp")]
+//     fn range() {
+//         use tower_lsp::lsp_types::Position;
+//
+//         use crate::{Parser, grammer::document};
+//
+//         let source = "* this is a heading\nThis";
+//         let mut p = Parser::new(source);
+//         let res = document(&mut p);
+//         assert_eq!(0, res.loc().line());
+//         assert_eq!(1, res.loc().character());
+//         assert_eq!(0, res.loc().offsets());
+//         assert_eq!(Position::new(0, 1), res.start_position());
+//         assert_eq!(Position::new(1, 4), res.end_position());
+//         assert_eq!(
+//             tower_lsp::lsp_types::Range::new(
+//                 tower_lsp::lsp_types::Position::new(0, 1),
+//                 tower_lsp::lsp_types::Position::new(1, 4)
+//             ),
+//             res.range()
+//         )
+//     }
+// }

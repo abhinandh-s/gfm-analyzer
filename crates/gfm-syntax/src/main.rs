@@ -7,15 +7,8 @@ fn main() {
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    let source = r##"
-
-Example 42
-
-## foo ## 
-
-# foo ###
-
-##### foo ##"##;
+    let source = r##"    aaa
+bbb"##;
 
     println!("{}", cst!(source).display());
 }
