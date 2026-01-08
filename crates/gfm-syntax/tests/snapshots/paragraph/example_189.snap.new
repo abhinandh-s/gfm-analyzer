@@ -1,5 +1,6 @@
 ---
-source: crates/gfm-syntax/src/grammer/mod.rs
+source: crates/gfm-syntax/tests/paragraphs.rs
+assertion_line: 8
 expression: output
 ---
 Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]

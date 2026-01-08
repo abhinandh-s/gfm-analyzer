@@ -52,7 +52,7 @@ impl Parser {
     #[track_caller]
     pub(crate) fn assert_movement(&self, last_cursor: usize) {
         if self.cursor == last_cursor {
-            let tok = self.nth(last_cursor);
+            let tok = self.nth_depreciated(last_cursor);
             panic!("Parser is stuck at {last_cursor} on `{tok}`");
         }
     }
@@ -89,7 +89,7 @@ impl Parser {
     }
 
     #[track_caller]
-    pub(crate) fn kind_at(&self, idx: usize) -> Option<SyntaxKind> {
+    pub(crate) fn nth(&self, idx: usize) -> Option<SyntaxKind> {
         let index = self.cursor + idx;
         self.tokens.get(index).map(|d| d.kind())
     }
@@ -115,7 +115,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn nth(&self, n: usize) -> SyntaxKind {
+    pub(crate) fn nth_depreciated(&self, n: usize) -> SyntaxKind {
         self.kind_at_unchecked(n)
     }
 

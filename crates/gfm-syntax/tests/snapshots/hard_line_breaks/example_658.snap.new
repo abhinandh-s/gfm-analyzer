@@ -1,5 +1,6 @@
 ---
 source: crates/gfm-syntax/tests/hard_line_breaks.rs
+assertion_line: 4
 expression: output
 ---
 Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]

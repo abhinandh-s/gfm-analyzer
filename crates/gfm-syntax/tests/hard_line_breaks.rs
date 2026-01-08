@@ -7,3 +7,15 @@ assert_tree!(
     r###"foo  
 baz"###
 );
+assert_tree!(
+    hard_line_breaks,
+    example_665,
+    r###"`code  
+span`"###
+);
+assert_tree!(
+    hard_line_breaks,
+    example_666,
+    r###"`code\
+span`"###
+);

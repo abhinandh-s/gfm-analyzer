@@ -178,6 +178,12 @@ fn paragraph(p: &mut Parser) -> usize {
                 count = eat_breaks(p);
                 break;
             }
+            SyntaxKind::Pound => {
+                if count < 3 {
+                    break;
+                }
+            }
+            SyntaxKind::Backtick => code(p),
             _ => inline(p),
         }
     });
@@ -192,13 +198,34 @@ fn quote(p: &mut Parser) {
     let m = p.start();
     p.eat_many_in_set(syntax_set!(GreaterThan));
     p.expect(T![WhiteSpace]);
-    paragraph_segment(p);
+    inline(p);
+    eat_breaks(p);
     p.wrap(m, T![Quote]);
 }
 
 fn code(p: &mut Parser) {
     let m = p.start();
-    p.eat_until(syntax_set!(LineEnding, ParaBreak));
+    let end_count: usize = 0;
+    let count = match p.current() {
+        T![Backtick] => p.eat_many_counted(T![Backtick]),
+        _ => 0,
+    };
+    if count == 0 {
+        p.eat_until(syntax_set!(LineEnding, ParaBreak));
+    }
+    while !p.is_at_eof() {
+        p.eat_until(syntax_set!(Backtick));
+        let end_count = p.eat_many_counted(T![Backtick]);
+        if count == end_count {
+            break;
+        }
+    }
+
+    if count > end_count {
+        p.expect(T![Backtick]);
+    } else if count < end_count {
+        p.expect_closing_delimiter(m, T![Backtick]);
+    }
     eat_breaks(p);
     p.wrap(m, T![InlineCode]);
 }
@@ -247,77 +274,26 @@ fn heading(p: &mut Parser) {
     p.assert(T![Pound]);
     let m = p.start();
     let count = p.eat_many_counted(T![Pound]);
-    let exists = p.expect(T![WhiteSpace]);
+    let is_termination = matches!(p.current(), T![LineEnding] | T![ParaBreak]);
+    let exist = match is_termination {
+        true => false,
+        false => p.expect(T![WhiteSpace]),
+    };
+    // let mut got_inline = false;
     let terminators = syntax_set!(LineEnding, ParaBreak, Eof);
-    let mut n = 0;
     while !p.at_set(terminators) {
-        println!("{}", n);
+        // if p.current() == T![Word] { got_inline = true }
         if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
             p.eat();
+            p.eat_many(T![Pound]);
+        } else if p.current() == T![Pound] && p.prev() == Some(T![WhiteSpace]) {
             p.eat_many(T![Pound]);
         } else {
             inline(p);
         }
-        n += 1;
-    }
-    /*
-     while !p.at_set(terminators) {
-        // # foo #####
-        //      ^
-        //      stops here
-        if (p.current() == T![WhiteSpace]) && (p.next() == Some(T![Pound])) {
-            p.eat(); // WhiteSpace
-            let mut end_count: usize;
-
-            let mut n = 0;
-            while p.at(T![Pound]) && p.next() == Some(T![Pound]) {
-                p.eat();
-                n += 1;
-            }
-            end_count = n;
-            // # foo #####
-            //          ^
-            //          here one more `#` left
-            p.assert(T![Pound]);
-            end_count += 1;
-
-            // # foo ####
-            //          ^ afer this last `#` is `\n` or `\n\n` or `\0`
-            //
-            //          eat `#` then heading marker number rule
-            let _tok_after_pound_is_terminator = matches!(
-                p.next(),
-                Some(T![LineEnding]) | Some(T![ParaBreak]) | Some(T![Eof])
-            );
-            // # foo ####
-            //          ^ afer this last `#` there is a `   ` and next is `\n` or `\n\n` or `\0`
-            //
-            //          eat `#`, eat `   ` then heading marker number rule
-            let _white_space_then_terminators = matches!(
-                p.kind_at(2),
-                Some(T![LineEnding]) | Some(T![ParaBreak]) | Some(T![Eof])
-            ) && p.next() == Some(T![WhiteSpace]);
-
-            if count == end_count {
-                p.eat();
-                break;
-            }
-        } else {
-            p.eat();
-        }
-    }
-
-    // # foo ##### dhosfnlfdjkhjk
-    //            ^
-    //            from here is dealed
-    if !p.at_set(terminators) {
-        p.eat_until(terminators);
     }
     eat_breaks(p);
-    */
-    // p.eat_until(terminators);
-    eat_breaks(p);
-    if count <= 6 && exists {
+    if count <= 6 && (exist || is_termination) {
         p.wrap(m, SyntaxKind::Heading);
     } else {
         p.wrap(m, SyntaxKind::Paragraph);
@@ -332,7 +308,7 @@ fn thematic_breaks(p: &mut Parser) {
         SyntaxKind::Asterisk | SyntaxKind::Hyphen | SyntaxKind::Underscore
     );
     let second = p.next().filter(|k| *k == kind).is_some();
-    let third = p.kind_at(2).filter(|k| *k == kind).is_some();
+    let third = p.nth(2).filter(|k| *k == kind).is_some();
     if current && second && third {
         p.eat_many(kind);
         p.skip_whitespace();
@@ -353,4 +329,3 @@ fn linkable(p: &mut Parser) {
     p.expect_closing_delimiter(m, current.corresponding_pair_unchecked());
     p.wrap(m, SyntaxKind::Link);
 }
-

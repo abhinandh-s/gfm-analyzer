@@ -1,5 +1,6 @@
 ---
 source: crates/gfm-syntax/src/lex.rs
+assertion_line: 898
 expression: tokens
 ---
 [
