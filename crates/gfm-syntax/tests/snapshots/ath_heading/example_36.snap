@@ -1,0 +1,20 @@
+---
+source: crates/gfm-syntax/tests/atx_headings.rs
+expression: output
+---
+Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  Heading [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+    Pound: "#" [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+    WhiteSpace: " " [ offsets: 1, position: ( line: 0, col: 1 ) ] ]
+    Inline [ offsets: 2, position: ( line: 0, col: 2 ) ] ]
+      Word: "foo" [ offsets: 2, position: ( line: 0, col: 2 ) ] ]
+      WhiteSpace: " " [ offsets: 5, position: ( line: 0, col: 5 ) ] ]
+      Bold [ offsets: 6, position: ( line: 0, col: 6 ) ] ]
+        Asterisk: "*" [ offsets: 6, position: ( line: 0, col: 6 ) ] ]
+        Word: "bar" [ offsets: 7, position: ( line: 0, col: 7 ) ] ]
+        Asterisk: "*" [ offsets: 10, position: ( line: 0, col: 10 ) ] ]
+      WhiteSpace: " " [ offsets: 11, position: ( line: 0, col: 11 ) ] ]
+      EscapedChar: "\\*" [ offsets: 12, position: ( line: 0, col: 12 ) ] ]
+      Word: "baz" [ offsets: 14, position: ( line: 0, col: 14 ) ] ]
+      EscapedChar: "\\*" [ offsets: 17, position: ( line: 0, col: 17 ) ] ]
+  Eof: "\0" [ offsets: 19, position: ( line: 0, col: 19 ) ] ]

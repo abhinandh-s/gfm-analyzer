@@ -6,13 +6,13 @@ use gfm_syntax::assert_tree;
 use gfm_syntax::cst;
 
 assert_tree!(
-    blank_lines,
+    code_spans,
     example_338,
     r###"`foo`"###
 );
 
 assert_tree!(
-    blank_lines,
+    code_spans,
     example_339,
     r###"`` foo ` bar ``"###
 );

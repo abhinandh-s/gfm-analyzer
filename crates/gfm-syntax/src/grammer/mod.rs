@@ -166,45 +166,83 @@ fn eat_breaks(p: &mut Parser) -> usize {
 }
 
 fn paragraph(p: &mut Parser) -> usize {
-    let mut count = 0;
     let m = p.start();
+    let count = paragraph_unwarped(p);
+    p.wrap(m, SyntaxKind::Paragraph);
+    count
+}
+
+fn paragraph_unwarped(p: &mut Parser) -> usize {
+    let mut count = 0;
     let last_cursor = p.cursor;
     looper!(!p.is_at_eof(), {
         match p.current() {
             SyntaxKind::LineEnding => {
                 count = eat_breaks(p);
+                continue;
             }
             SyntaxKind::ParaBreak => {
-                count = eat_breaks(p);
+                eat_breaks(p);
                 break;
             }
             SyntaxKind::Pound => {
                 if count < 3 {
                     break;
+                } else {
+                    p.eat();
+                }
+            }
+            SyntaxKind::GreaterThan => {
+                if count < 3 {
+                    break;
+                } else {
+                    p.eat();
                 }
             }
             SyntaxKind::Backtick => code(p),
-            _ => inline(p),
+            _ => {
+                if count < 3 {
+                    inline(p);
+                } else {
+                    code(p);
+                }
+            }
         }
+        count = 0;
     });
 
     p.assert_movement(last_cursor);
-
-    p.wrap(m, SyntaxKind::Paragraph);
     count
 }
 
 fn quote(p: &mut Parser) {
     let m = p.start();
-    p.eat_many_in_set(syntax_set!(GreaterThan));
-    p.expect(T![WhiteSpace]);
-    inline(p);
-    eat_breaks(p);
+    while !p.is_at_eof() && p.current() == T![GreaterThan] {
+        p.eat_many_in_set(syntax_set!(GreaterThan));
+        // this space can be ommited, so [skip_whitespace]
+        let mut count = p.skip_whitespace();
+        match p.current() {
+            SyntaxKind::Pound => heading(p),
+            _ => {
+                if count < 3 {
+                    let m = p.start();
+                    inline(p);
+                    if p.current() == T![LineEnding] && p.next() == Some(T![GreaterThan]) {
+                        count = eat_breaks(p);
+                    }
+                    p.wrap(m, T![Paragraph]);
+                } else {
+                    code(p);
+                }
+            }
+        }
+    }
     p.wrap(m, T![Quote]);
 }
 
 fn code(p: &mut Parser) {
     let m = p.start();
+    println!("in code: c = {}", p.current());
     let end_count: usize = 0;
     let count = match p.current() {
         T![Backtick] => p.eat_many_counted(T![Backtick]),
@@ -214,19 +252,23 @@ fn code(p: &mut Parser) {
         p.eat_until(syntax_set!(LineEnding, ParaBreak));
     }
     while !p.is_at_eof() {
+        println!("in code: c = {}", p.current());
         p.eat_until(syntax_set!(Backtick));
         let end_count = p.eat_many_counted(T![Backtick]);
         if count == end_count {
             break;
         }
     }
-
-    if count > end_count {
-        p.expect(T![Backtick]);
-    } else if count < end_count {
-        p.expect_closing_delimiter(m, T![Backtick]);
+    if !p.is_at_eof() {
+        if count > end_count {
+            p.expect(T![Backtick]);
+        } else if count < end_count {
+            p.expect_closing_delimiter(m, T![Backtick]);
+        }
+        eat_breaks(p);
     }
-    eat_breaks(p);
+    println!("in code: c = {}", p.current());
+
     p.wrap(m, T![InlineCode]);
 }
 
@@ -238,6 +280,7 @@ fn inline(p: &mut Parser) {
 
     while !p.is_at_eof() {
         println!("{}", n);
+        println!("{}", p.current());
         match p.current() {
             SyntaxKind::ForwardSlash if p.next() == Some(T![LineEnding]) => {
                 let m = p.start();

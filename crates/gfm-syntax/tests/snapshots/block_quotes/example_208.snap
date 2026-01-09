@@ -1,0 +1,27 @@
+---
+source: crates/gfm-syntax/tests/block_quote.rs
+expression: output
+---
+Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  WhiteSpace: "   " [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  Quote [ offsets: 3, position: ( line: 0, col: 3 ) ] ]
+    GreaterThan: ">" [ offsets: 3, position: ( line: 0, col: 3 ) ] ]
+    WhiteSpace: " " [ offsets: 4, position: ( line: 0, col: 4 ) ] ]
+    Heading [ offsets: 5, position: ( line: 0, col: 5 ) ] ]
+      Pound: "#" [ offsets: 5, position: ( line: 0, col: 5 ) ] ]
+      WhiteSpace: " " [ offsets: 6, position: ( line: 0, col: 6 ) ] ]
+      Inline [ offsets: 7, position: ( line: 0, col: 7 ) ] ]
+        Word: "Foo" [ offsets: 7, position: ( line: 0, col: 7 ) ] ]
+      LineEnding: "\n   " [ offsets: 10, position: ( line: 0, col: 10 ) ] ]
+    GreaterThan: ">" [ offsets: 14, position: ( line: 1, col: 0 ) ] ]
+    WhiteSpace: " " [ offsets: 15, position: ( line: 1, col: 1 ) ] ]
+    Paragraph [ offsets: 16, position: ( line: 1, col: 2 ) ] ]
+      Inline [ offsets: 16, position: ( line: 1, col: 2 ) ] ]
+        Word: "bar" [ offsets: 16, position: ( line: 1, col: 2 ) ] ]
+      LineEnding: "\n " [ offsets: 19, position: ( line: 1, col: 5 ) ] ]
+    GreaterThan: ">" [ offsets: 21, position: ( line: 2, col: 0 ) ] ]
+    WhiteSpace: " " [ offsets: 22, position: ( line: 2, col: 1 ) ] ]
+    Paragraph [ offsets: 23, position: ( line: 2, col: 2 ) ] ]
+      Inline [ offsets: 23, position: ( line: 2, col: 2 ) ] ]
+        Word: "baz" [ offsets: 23, position: ( line: 2, col: 2 ) ] ]
+  Eof: "\0" [ offsets: 26, position: ( line: 2, col: 5 ) ] ]

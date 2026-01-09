@@ -1,0 +1,11 @@
+---
+source: crates/gfm-syntax/tests/paragraphs.rs
+expression: output
+---
+Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  WhiteSpace: "    " [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  InlineCode [ offsets: 4, position: ( line: 0, col: 4 ) ] ]
+    Word: "aaa" [ offsets: 4, position: ( line: 0, col: 4 ) ] ]
+    LineEnding: "\n" [ offsets: 7, position: ( line: 0, col: 7 ) ] ]
+    Word: "bbb" [ offsets: 8, position: ( line: 0, col: 8 ) ] ]
+  Eof: "\0" [ offsets: 11, position: ( line: 0, col: 11 ) ] ]
