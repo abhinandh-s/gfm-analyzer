@@ -105,7 +105,7 @@ where
 
 #[macro_export]
 macro_rules! assert_tree {
-    ($dir_name:ident, $test_name:ident, $input:literal) => {
+    ($dir_name:ident, $test_name:ident, $input:expr) => {
         #[test]
         fn $test_name() {
             let snapshot_path = {

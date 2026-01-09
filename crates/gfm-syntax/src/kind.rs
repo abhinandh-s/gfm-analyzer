@@ -81,6 +81,7 @@ pub enum SyntaxKind {
     Variable,
     LinkLocation,
     LinkDescription,
+    IndentedCodeBlock,
     Link,
     HtmlTag,
     Inline,

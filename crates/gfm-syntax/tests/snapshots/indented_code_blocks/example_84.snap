@@ -1,13 +1,13 @@
 ---
-source: crates/gfm-syntax/tests/paragraphs.rs
+source: crates/gfm-syntax/src/grammer/leaf.rs
 expression: output
 ---
 Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
   WhiteSpace: "    " [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
   IndentedCodeBlock [ offsets: 4, position: ( line: 0, col: 4 ) ] ]
-    Word: "aaa" [ offsets: 4, position: ( line: 0, col: 4 ) ] ]
+    Word: "foo" [ offsets: 4, position: ( line: 0, col: 4 ) ] ]
     LineEnding: "\n" [ offsets: 7, position: ( line: 0, col: 7 ) ] ]
   Paragraph [ offsets: 8, position: ( line: 1, col: 0 ) ] ]
     Inline [ offsets: 8, position: ( line: 1, col: 0 ) ] ]
-      Word: "bbb" [ offsets: 8, position: ( line: 1, col: 0 ) ] ]
+      Word: "bar" [ offsets: 8, position: ( line: 1, col: 0 ) ] ]
   Eof: "\0" [ offsets: 11, position: ( line: 1, col: 3 ) ] ]

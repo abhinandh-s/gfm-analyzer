@@ -2,57 +2,51 @@
 
 use crate::*;
 
+mod example;
+pub use example::*;
+
+mod leaf;
+pub use leaf::*;
+
 mod am;
 use am::*;
 
 mod dm;
 use dm::*;
 
-pub enum NeorgLint {
+pub enum GfmLint {
     EmptyAtModifiers,
     EmptyLink,
 }
 
 // document
 //
-// - paragraph_break and line_break (x) // lexer will handle both line_break & paragraph_break
-// - paragraph (x)
-// - heading (x)
-//       | nestable_detached_modifier
-//             | rangeable_detached_modifier
-//             | table
-//             | tag
-//             | horizontal_line (X)
-//             | strong_paragraph_delimiter
-//
 pub fn document(p: &mut Parser) -> SyntaxNode {
     let m = p.start();
 
     let mut n = 0;
     let mut count = p.skip_whitespace();
+
     // stops on Eof
     p.iter_while(None, |p| {
-        // let count = p.skip_whitespace();
-
-        println!("n = {n}, current: {}", p.current());
-
         match p.current() {
             T![WhiteSpace] => {
                 count = p.skip_whitespace();
             }
             T![Pound] => {
-                if count < 3 {
-                    heading(p)
+                if count >= 4 {
+                    fenced_code_span(p);
                 } else {
-                    code(p);
+                    count = heading(p);
                 }
             }
-            T![GreaterThan] => quote(p),
+            T![GreaterThan] => {
+                quote(p);
+            }
             T![Hyphen] => unorderedlist(p),
             _ => {
-                if count > 3 {
-                    code(p);
-                    count = 0;
+                if count >= 4 {
+                    count = indented_code_blocks(p, false);
                 } else {
                     count = paragraph(p)
                 }
@@ -130,6 +124,7 @@ fn paragraph_element(p: &mut Parser) {
     }
 }
 
+// returns WhiteSpace count of new line
 fn eat_breaks(p: &mut Parser) -> usize {
     let mut count = 0;
     while !p.is_at_eof() {
@@ -182,7 +177,7 @@ fn paragraph_unwarped(p: &mut Parser) -> usize {
                 continue;
             }
             SyntaxKind::ParaBreak => {
-                eat_breaks(p);
+                count = eat_breaks(p);
                 break;
             }
             SyntaxKind::Pound => {
@@ -199,13 +194,9 @@ fn paragraph_unwarped(p: &mut Parser) -> usize {
                     p.eat();
                 }
             }
-            SyntaxKind::Backtick => code(p),
+            SyntaxKind::Backtick => fenced_code_span(p),
             _ => {
-                if count < 3 {
-                    inline(p);
-                } else {
-                    code(p);
-                }
+                inline(p);
             }
         }
         count = 0;
@@ -215,34 +206,70 @@ fn paragraph_unwarped(p: &mut Parser) -> usize {
     count
 }
 
-fn quote(p: &mut Parser) {
+fn quote(p: &mut Parser) -> usize {
     let m = p.start();
-    while !p.is_at_eof() && p.current() == T![GreaterThan] {
+    p.assert(T![GreaterThan]);
+    let mut count = 0;
+
+    while !p.is_at_eof() {
         p.eat_many_in_set(syntax_set!(GreaterThan));
-        // this space can be ommited, so [skip_whitespace]
-        let mut count = p.skip_whitespace();
+        // this space can be ommited,
+        // ie, zero WhiteSpace is allowed
+        count = p.skip_whitespace();
+
         match p.current() {
-            SyntaxKind::Pound => heading(p),
+            SyntaxKind::Pound => {
+                count = heading(p);
+            }
             _ => {
-                if count < 3 {
-                    let m = p.start();
-                    inline(p);
-                    if p.current() == T![LineEnding] && p.next() == Some(T![GreaterThan]) {
-                        count = eat_breaks(p);
-                    }
-                    p.wrap(m, T![Paragraph]);
+                if count >= 4 {
+                    count = indented_code_blocks(p, true);
                 } else {
-                    code(p);
+                    count = paragraph(p);
                 }
             }
         }
+        if p.current() == T![GreaterThan] {
+            continue;
+        } else {
+            break;
+        }
     }
     p.wrap(m, T![Quote]);
+    count
 }
 
-fn code(p: &mut Parser) {
+// Example [206..230] 
+//
+// assert_tree!(block_quotes, example_206, EXAMPLE_206);
+// assert_tree!(block_quotes, example_207, EXAMPLE_207);
+// assert_tree!(block_quotes, example_208, EXAMPLE_208);
+// assert_tree!(block_quotes, example_209, EXAMPLE_209);
+// assert_tree!(block_quotes, example_210, EXAMPLE_210);
+// assert_tree!(block_quotes, example_211, EXAMPLE_211);
+// assert_tree!(block_quotes, example_212, EXAMPLE_212);
+// assert_tree!(block_quotes, example_213, EXAMPLE_213);
+// assert_tree!(block_quotes, example_214, EXAMPLE_214);
+// assert_tree!(block_quotes, example_215, EXAMPLE_215);
+// assert_tree!(block_quotes, example_216, EXAMPLE_216);
+// assert_tree!(block_quotes, example_217, EXAMPLE_217);
+// assert_tree!(block_quotes, example_218, EXAMPLE_218);
+// assert_tree!(block_quotes, example_219, EXAMPLE_219);
+// assert_tree!(block_quotes, example_220, EXAMPLE_220);
+// assert_tree!(block_quotes, example_221, EXAMPLE_221);
+// assert_tree!(block_quotes, example_222, EXAMPLE_222);
+// assert_tree!(block_quotes, example_223, EXAMPLE_223);
+// assert_tree!(block_quotes, example_224, EXAMPLE_224);
+// assert_tree!(block_quotes, example_225, EXAMPLE_225);
+// assert_tree!(block_quotes, example_226, EXAMPLE_226);
+// assert_tree!(block_quotes, example_227, EXAMPLE_227);
+// assert_tree!(block_quotes, example_228, EXAMPLE_228);
+// assert_tree!(block_quotes, example_229, EXAMPLE_229);
+// assert_tree!(block_quotes, example_220, EXAMPLE_230);
+
+
+fn fenced_code_span(p: &mut Parser) {
     let m = p.start();
-    println!("in code: c = {}", p.current());
     let end_count: usize = 0;
     let count = match p.current() {
         T![Backtick] => p.eat_many_counted(T![Backtick]),
@@ -252,7 +279,6 @@ fn code(p: &mut Parser) {
         p.eat_until(syntax_set!(LineEnding, ParaBreak));
     }
     while !p.is_at_eof() {
-        println!("in code: c = {}", p.current());
         p.eat_until(syntax_set!(Backtick));
         let end_count = p.eat_many_counted(T![Backtick]);
         if count == end_count {
@@ -267,7 +293,6 @@ fn code(p: &mut Parser) {
         }
         eat_breaks(p);
     }
-    println!("in code: c = {}", p.current());
 
     p.wrap(m, T![InlineCode]);
 }
@@ -276,11 +301,7 @@ fn code(p: &mut Parser) {
 fn inline(p: &mut Parser) {
     let m = p.start();
 
-    let mut n = 0;
-
     while !p.is_at_eof() {
-        println!("{}", n);
-        println!("{}", p.current());
         match p.current() {
             SyntaxKind::ForwardSlash if p.next() == Some(T![LineEnding]) => {
                 let m = p.start();
@@ -307,13 +328,12 @@ fn inline(p: &mut Parser) {
                 p.eat();
             }
         }
-        n += 1;
     }
     p.wrap(m, T![Inline]);
 }
 
 #[allow(clippy::print_stdout)]
-fn heading(p: &mut Parser) {
+fn heading(p: &mut Parser) -> usize {
     p.assert(T![Pound]);
     let m = p.start();
     let count = p.eat_many_counted(T![Pound]);
@@ -335,12 +355,13 @@ fn heading(p: &mut Parser) {
             inline(p);
         }
     }
-    eat_breaks(p);
+    let n = eat_breaks(p);
     if count <= 6 && (exist || is_termination) {
         p.wrap(m, SyntaxKind::Heading);
     } else {
         p.wrap(m, SyntaxKind::Paragraph);
     }
+    n
 }
 
 fn thematic_breaks(p: &mut Parser) {

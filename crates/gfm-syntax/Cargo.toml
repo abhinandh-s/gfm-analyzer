@@ -11,7 +11,8 @@ categories = ["command-line-utilities"]
 keywords = ["cli", "tool", "utility"]
 
 [features]
-default = ["tower-lsp"]
+default = []
+# default = ["tower-lsp"]
 tower-lsp = ["dep:tower-lsp", "dep:ropey"]
 lsp-types = ["dep:lsp-types", "dep:ropey"]
 

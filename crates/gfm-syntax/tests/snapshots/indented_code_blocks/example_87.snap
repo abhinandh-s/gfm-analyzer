@@ -1,0 +1,11 @@
+---
+source: crates/gfm-syntax/src/grammer/leaf.rs
+expression: output
+---
+Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  Paragraph [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+    ParaBreak: "\n    \n    " [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  IndentedCodeBlock [ offsets: 10, position: ( line: 2, col: 0 ) ] ]
+    Word: "foo" [ offsets: 10, position: ( line: 2, col: 0 ) ] ]
+    LineEnding: "\n    " [ offsets: 13, position: ( line: 2, col: 3 ) ] ]
+  Eof: "\0" [ offsets: 18, position: ( line: 3, col: 0 ) ] ]
