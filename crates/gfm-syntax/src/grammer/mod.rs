@@ -29,13 +29,19 @@ pub fn document(p: &mut Parser) -> SyntaxNode {
 
     // stops on Eof
     p.iter_while(None, |p| {
+        if count >= 4 {
+            count = indented_code_blocks(p, false);
+        }
         match p.current() {
             T![WhiteSpace] => {
                 count = p.skip_whitespace();
             }
+            T![Backtick] | T![Tilda] => {
+                count = fenced_code_blocks(p);
+            }
             T![Pound] => {
                 if count >= 4 {
-                    fenced_code_span(p);
+                    count = indented_code_blocks(p, false);
                 } else {
                     count = heading(p);
                 }
@@ -194,7 +200,10 @@ fn paragraph_unwarped(p: &mut Parser) -> usize {
                     p.eat();
                 }
             }
-            SyntaxKind::Backtick => fenced_code_span(p),
+            SyntaxKind::Backtick | SyntaxKind::Tilda => {
+                count = fenced_code_blocks(p);
+                continue;
+            }
             _ => {
                 inline(p);
             }
@@ -239,7 +248,7 @@ fn quote(p: &mut Parser) -> usize {
     count
 }
 
-// Example [206..230] 
+// Example [206..230]
 //
 // assert_tree!(block_quotes, example_206, EXAMPLE_206);
 // assert_tree!(block_quotes, example_207, EXAMPLE_207);
@@ -266,36 +275,6 @@ fn quote(p: &mut Parser) -> usize {
 // assert_tree!(block_quotes, example_228, EXAMPLE_228);
 // assert_tree!(block_quotes, example_229, EXAMPLE_229);
 // assert_tree!(block_quotes, example_220, EXAMPLE_230);
-
-
-fn fenced_code_span(p: &mut Parser) {
-    let m = p.start();
-    let end_count: usize = 0;
-    let count = match p.current() {
-        T![Backtick] => p.eat_many_counted(T![Backtick]),
-        _ => 0,
-    };
-    if count == 0 {
-        p.eat_until(syntax_set!(LineEnding, ParaBreak));
-    }
-    while !p.is_at_eof() {
-        p.eat_until(syntax_set!(Backtick));
-        let end_count = p.eat_many_counted(T![Backtick]);
-        if count == end_count {
-            break;
-        }
-    }
-    if !p.is_at_eof() {
-        if count > end_count {
-            p.expect(T![Backtick]);
-        } else if count < end_count {
-            p.expect_closing_delimiter(m, T![Backtick]);
-        }
-        eat_breaks(p);
-    }
-
-    p.wrap(m, T![InlineCode]);
-}
 
 #[allow(clippy::print_stdout)]
 fn inline(p: &mut Parser) {
@@ -392,4 +371,16 @@ fn linkable(p: &mut Parser) {
     p.eat_until(syntax_set!(Eof, LineEnding, ParaBreak, RSquare));
     p.expect_closing_delimiter(m, current.corresponding_pair_unchecked());
     p.wrap(m, SyntaxKind::Link);
+}
+
+#[cfg(test)]
+mod test {
+    use crate::cst;
+
+    proptest::proptest! {
+        #[test]
+        fn no_panic_prop(input in ".*") {
+            cst!(&input);
+        }
+    }
 }

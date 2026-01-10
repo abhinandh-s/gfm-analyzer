@@ -1,0 +1,17 @@
+---
+source: crates/gfm-syntax/src/grammer/leaf.rs
+expression: output
+---
+Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  WhiteSpace: "   " [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  FencedCodeBlock [ offsets: 3, position: ( line: 0, col: 3 ) ] ]
+    Backtick: "`" [ offsets: 3, position: ( line: 0, col: 3 ) ] ]
+    Backtick: "`" [ offsets: 4, position: ( line: 0, col: 4 ) ] ]
+    Backtick: "`" [ offsets: 5, position: ( line: 0, col: 5 ) ] ]
+    LineEnding: "\n" [ offsets: 6, position: ( line: 0, col: 6 ) ] ]
+    Word: "aaa" [ offsets: 7, position: ( line: 1, col: 0 ) ] ]
+    LineEnding: "\n  " [ offsets: 10, position: ( line: 1, col: 3 ) ] ]
+    Backtick: "`" [ offsets: 13, position: ( line: 2, col: 0 ) ] ]
+    Backtick: "`" [ offsets: 14, position: ( line: 2, col: 1 ) ] ]
+    Backtick: "`" [ offsets: 15, position: ( line: 2, col: 2 ) ] ]
+  Eof: "\0" [ offsets: 16, position: ( line: 2, col: 3 ) ] ]

@@ -1,0 +1,14 @@
+---
+source: crates/gfm-syntax/src/grammer/leaf.rs
+expression: output
+---
+Document [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+  FencedCodeBlock [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+    Backtick: "`" [ offsets: 0, position: ( line: 0, col: 0 ) ] ]
+    Backtick: "`" [ offsets: 1, position: ( line: 0, col: 1 ) ] ]
+    Backtick: "`" [ offsets: 2, position: ( line: 0, col: 2 ) ] ]
+    LineEnding: "\n" [ offsets: 3, position: ( line: 0, col: 3 ) ] ]
+    Backtick: "`" [ offsets: 4, position: ( line: 1, col: 0 ) ] ]
+    Backtick: "`" [ offsets: 5, position: ( line: 1, col: 1 ) ] ]
+    Backtick: "`" [ offsets: 6, position: ( line: 1, col: 2 ) ] ]
+  Eof: "\0" [ offsets: 7, position: ( line: 1, col: 3 ) ] ]

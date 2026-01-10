@@ -88,6 +88,9 @@ pub enum SyntaxKind {
     ThematicBreaks,
     HardLineBreaks,
     __LAST,
+    FencedCodeBlock,
+    Delimiter,
+    InfoString,
 }
 
 impl SyntaxKind {
